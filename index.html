@@ -1,67 +1,37 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Chat</title>
-    <style>
-      html, body { height: 100%; margin: 0; }
-      #chatbot { height: 100vh; width: 100vw; }
-    </style>
-  </head>
-  <body>
-    <div id="chatbot"></div>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Training Chat</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    #wrap { height: 100%; }
+    iframe { border: 0; width: 100%; height: 100%; display: block; }
+  </style>
+</head>
+<body>
+  <div id="wrap">
+    <iframe id="chat" allow="clipboard-read; clipboard-write; microphone *; camera *"></iframe>
+  </div>
 
-    <!-- Flowise embed script -->
-<script type="module">
-  // ---- Force the embed to use your Flowise host ----
-  const API_HOST = 'https://flowise-production-889b.up.railway.app';
+  <script>
+    const q = new URLSearchParams(location.search);
+    const flowId    = q.get('flowId');
+    const sessionId = q.get('sessionId') || q.get('chatId');
 
-  // Some builds read process.env.NEXT_PUBLIC_API_HOST at import time
-  window.process = { env: { NEXT_PUBLIC_API_HOST: API_HOST } };
+    // Your Flowise host on Railway:
+    const API_HOST = 'https://flowise-production-889b.up.railway.app';
 
-  // Some builds also check a global
-  window.FLOWISE_API_HOST = API_HOST;
-
-  // Dynamically import AFTER the env shim is set
-  const { default: Chatbot } = await import('https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js');
-
-  const q = new URLSearchParams(location.search);
-  const flowId    = q.get('flowId');
-  const sessionId = q.get('sessionId') || q.get('chatId');
-
-  const root = document.getElementById('chatbot');
-  const log  = (...a) => console.log('[helper]', ...a);
-  log('params', { flowId, sessionId });
-
-  if (!flowId || !sessionId) {
-    root.innerHTML = "<p style='padding:16px;font-family:sans-serif'>Missing flowId or sessionId.</p>";
-  } else {
-    const baseConfig = {
-      chatflowid: flowId,
-      apiHost: API_HOST,       // common key
-      apiHostUrl: API_HOST,    // alt key in some builds
-      baseUrl: API_HOST,       // another alias
-      api: { host: API_HOST }, // nested style in some builds
-      chatflowConfig: { sessionId, chatId: sessionId },
-      container: root,
-      theme: { chatWindow: { showTitle: true, title: 'Training Chat' } }
-    };
-
-    try {
-      if (typeof Chatbot?.initFull === 'function') {
-        log('using initFull', baseConfig);
-        Chatbot.initFull(baseConfig, root);
-      } else {
-        log('using init', baseConfig);
-        Chatbot.init(baseConfig);
-      }
-      log('init called');
-    } catch (e) {
-      console.error('[helper] init error', e);
-      root.innerHTML =
-        "<pre style='padding:16px;white-space:pre-wrap;font-family:monospace'>Init error: "
-        + (e?.message || e) + "</pre>";
+    if (!flowId || !sessionId) {
+      document.body.innerHTML =
+        "<p style='padding:16px;font-family:sans-serif'>Missing flowId or sessionId.</p>";
+    } else {
+      // Flowise’s built-in hosted UI
+      const src = `${API_HOST}/chatbot/${encodeURIComponent(flowId)}?sessionId=${encodeURIComponent(sessionId)}`;
+      document.getElementById('chat').src = src;
+      // (Optional) add more params you need, e.g. &theme=dark
     }
-  }
-</script>
+  </script>
+</body>
+</html>
