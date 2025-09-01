@@ -13,24 +13,32 @@
     <div id="chatbot"></div>
 
     <!-- Flowise embed script -->
-    <script src="https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"></script>
-    <script>
-      // read query params (?flowId=...&sessionId=...)
-      const q = new URLSearchParams(location.search);
-      const flowId    = q.get("flowId");
-      const sessionId = q.get("sessionId") || q.get("chatId");
+    <script type="module">
+  // Load the Flowise embed as an ES module
+  import Chatbot from 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
 
-      if (!flowId || !sessionId) {
-        document.getElementById("chatbot").innerHTML =
-          "<p style='padding:16px;font-family:sans-serif'>Missing flowId or sessionId.</p>";
-      } else {
-        // Force the widget to attach to your session
-        Chatbot.init({
-          chatflowid: flowId,
-          apiHost: "https://flowise-production-889b.up.railway.app",
-          chatflowConfig: { sessionId: sessionId }
-        });
-      }
-    </script>
-  </body>
-</html>
+  const q = new URLSearchParams(location.search);
+  const flowId    = q.get('flowId');
+  const sessionId = q.get('sessionId') || q.get('chatId');
+
+  const root = document.getElementById('chatbot');
+
+  if (!flowId || !sessionId) {
+    root.innerHTML = "<p style='padding:16px;font-family:sans-serif'>Missing flowId or sessionId.</p>";
+  } else {
+    try {
+      // Force the widget to join your exact session
+      Chatbot.init({
+        chatflowid: flowId,
+        apiHost: 'https://flowise-production-889b.up.railway.app',
+        chatflowConfig: {
+          sessionId: sessionId,
+          chatId: sessionId
+        }
+      });
+    } catch (e) {
+      root.innerHTML = "<pre style='padding:16px;white-space:pre-wrap;font-family:monospace'>" +
+        "Init error: " + (e?.message || e) + "</pre>";
+    }
+  }
+</script>
