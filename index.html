@@ -14,38 +14,41 @@
 
     <!-- Flowise embed script -->
 <script type="module">
-  import Chatbot from 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
+  // ---- Force the embed to use your Flowise host ----
+  const API_HOST = 'https://flowise-production-889b.up.railway.app';
+
+  // Some builds read process.env.NEXT_PUBLIC_API_HOST at import time
+  window.process = { env: { NEXT_PUBLIC_API_HOST: API_HOST } };
+
+  // Some builds also check a global
+  window.FLOWISE_API_HOST = API_HOST;
+
+  // Dynamically import AFTER the env shim is set
+  const { default: Chatbot } = await import('https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js');
 
   const q = new URLSearchParams(location.search);
   const flowId    = q.get('flowId');
   const sessionId = q.get('sessionId') || q.get('chatId');
 
   const root = document.getElementById('chatbot');
-  const apiHost = 'https://flowise-production-889b.up.railway.app';
-
-  const log = (...a) => console.log('[helper]', ...a);
+  const log  = (...a) => console.log('[helper]', ...a);
   log('params', { flowId, sessionId });
-  log('Chatbot keys', Object.keys(Chatbot || {}));
 
   if (!flowId || !sessionId) {
     root.innerHTML = "<p style='padding:16px;font-family:sans-serif'>Missing flowId or sessionId.</p>";
   } else {
+    const baseConfig = {
+      chatflowid: flowId,
+      apiHost: API_HOST,       // common key
+      apiHostUrl: API_HOST,    // alt key in some builds
+      baseUrl: API_HOST,       // another alias
+      api: { host: API_HOST }, // nested style in some builds
+      chatflowConfig: { sessionId, chatId: sessionId },
+      container: root,
+      theme: { chatWindow: { showTitle: true, title: 'Training Chat' } }
+    };
+
     try {
-      // some builds read a global – set it just in case
-      window.FLOWISE_API_HOST = apiHost;
-
-      const baseConfig = {
-        chatflowid: flowId,
-        // pass host under every name used in recent builds
-        apiHost: apiHost,
-        apiHostUrl: apiHost,
-        baseUrl: apiHost,
-        api: { host: apiHost },
-        chatflowConfig: { sessionId, chatId: sessionId },
-        container: root,
-        theme: { chatWindow: { showTitle: true, title: 'Training Chat' } }
-      };
-
       if (typeof Chatbot?.initFull === 'function') {
         log('using initFull', baseConfig);
         Chatbot.initFull(baseConfig, root);
@@ -53,7 +56,6 @@
         log('using init', baseConfig);
         Chatbot.init(baseConfig);
       }
-
       log('init called');
     } catch (e) {
       console.error('[helper] init error', e);
