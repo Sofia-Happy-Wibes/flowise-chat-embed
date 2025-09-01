@@ -23,23 +23,34 @@
 
   const root = document.getElementById('chatbot');
 
+  const log = (...args) => console.log('[helper]', ...args);
+
+  log('params', { flowId, sessionId });
+
   if (!flowId || !sessionId) {
     root.innerHTML = "<p style='padding:16px;font-family:sans-serif'>Missing flowId or sessionId.</p>";
   } else {
     try {
-      // Force the widget to join your exact session
+      log('calling Chatbot.init');
+      // Render INLINE into our #chatbot div (not just a floating bubble)
       Chatbot.init({
         chatflowid: flowId,
         apiHost: 'https://flowise-production-889b.up.railway.app',
         chatflowConfig: {
           sessionId: sessionId,
-          chatId: sessionId  // some builds look for this name
+          chatId: sessionId
+        },
+        container: root,            // << ensure the chat renders in this div
+        theme: {                    // optional: guarantees visible window
+          chatWindow: { showTitle: true, title: 'Training Chat' }
         }
       });
+      log('Chatbot.init called');
     } catch (e) {
       root.innerHTML =
         "<pre style='padding:16px;white-space:pre-wrap;font-family:monospace'>Init error: "
         + (e?.message || e) + "</pre>";
+      console.error(e);
     }
   }
 </script>
