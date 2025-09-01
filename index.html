@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Chat</title>
+    <style>
+      html, body { height: 100%; margin: 0; }
+      #chatbot { height: 100vh; width: 100vw; }
+    </style>
+  </head>
+  <body>
+    <div id="chatbot"></div>
+
+    <!-- Flowise embed script -->
+    <script src="https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"></script>
+    <script>
+      // read query params (?flowId=...&sessionId=...)
+      const q = new URLSearchParams(location.search);
+      const flowId    = q.get("flowId");
+      const sessionId = q.get("sessionId") || q.get("chatId");
+
+      if (!flowId || !sessionId) {
+        document.getElementById("chatbot").innerHTML =
+          "<p style='padding:16px;font-family:sans-serif'>Missing flowId or sessionId.</p>";
+      } else {
+        // Force the widget to attach to your session
+        Chatbot.init({
+          chatflowid: flowId,
+          apiHost: "https://flowise-production-889b.up.railway.app",
+          chatflowConfig: { sessionId: sessionId }
+        });
+      }
+    </script>
+  </body>
+</html>
