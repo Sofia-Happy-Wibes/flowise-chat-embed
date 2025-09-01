@@ -21,40 +21,42 @@
   const sessionId = q.get('sessionId') || q.get('chatId');
 
   const root = document.getElementById('chatbot');
-  const log  = (...a) => console.log('[helper]', ...a);
+  const apiHost = 'https://flowise-production-889b.up.railway.app';
 
+  const log = (...a) => console.log('[helper]', ...a);
   log('params', { flowId, sessionId });
+  log('Chatbot keys', Object.keys(Chatbot || {}));
 
   if (!flowId || !sessionId) {
     root.innerHTML = "<p style='padding:16px;font-family:sans-serif'>Missing flowId or sessionId.</p>";
   } else {
     try {
-      // Try the "full" inline mount first (some builds require this)
-      if (typeof Chatbot.initFull === 'function') {
-        log('using initFull');
-        Chatbot.initFull(
-          {
-            chatflowid: flowId,
-            apiHost: 'https://flowise-production-889b.up.railway.app',
-            chatflowConfig: { sessionId, chatId: sessionId },
-            theme: { chatWindow: { showTitle: true, title: 'Training Chat' } }
-          },
-          root // mount into our div
-        );
+      // some builds read a global – set it just in case
+      window.FLOWISE_API_HOST = apiHost;
+
+      const baseConfig = {
+        chatflowid: flowId,
+        // pass host under every name used in recent builds
+        apiHost: apiHost,
+        apiHostUrl: apiHost,
+        baseUrl: apiHost,
+        api: { host: apiHost },
+        chatflowConfig: { sessionId, chatId: sessionId },
+        container: root,
+        theme: { chatWindow: { showTitle: true, title: 'Training Chat' } }
+      };
+
+      if (typeof Chatbot?.initFull === 'function') {
+        log('using initFull', baseConfig);
+        Chatbot.initFull(baseConfig, root);
       } else {
-        // Fallback to regular init with container
-        log('using init (container)');
-        Chatbot.init({
-          chatflowid: flowId,
-          apiHost: 'https://flowise-production-889b.up.railway.app',
-          chatflowConfig: { sessionId, chatId: sessionId },
-          container: root,
-          theme: { chatWindow: { showTitle: true, title: 'Training Chat' } }
-        });
+        log('using init', baseConfig);
+        Chatbot.init(baseConfig);
       }
+
       log('init called');
     } catch (e) {
-      log('init error', e);
+      console.error('[helper] init error', e);
       root.innerHTML =
         "<pre style='padding:16px;white-space:pre-wrap;font-family:monospace'>Init error: "
         + (e?.message || e) + "</pre>";
