@@ -13,8 +13,7 @@
     <div id="chatbot"></div>
 
     <!-- Flowise embed script -->
-    <script type="module">
-  // Load the Flowise embed as an ES module
+<script type="module">
   import Chatbot from 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
 
   const q = new URLSearchParams(location.search);
@@ -22,8 +21,7 @@
   const sessionId = q.get('sessionId') || q.get('chatId');
 
   const root = document.getElementById('chatbot');
-
-  const log = (...args) => console.log('[helper]', ...args);
+  const log  = (...a) => console.log('[helper]', ...a);
 
   log('params', { flowId, sessionId });
 
@@ -31,26 +29,35 @@
     root.innerHTML = "<p style='padding:16px;font-family:sans-serif'>Missing flowId or sessionId.</p>";
   } else {
     try {
-      log('calling Chatbot.init');
-      // Render INLINE into our #chatbot div (not just a floating bubble)
-      Chatbot.init({
-        chatflowid: flowId,
-        apiHost: 'https://flowise-production-889b.up.railway.app',
-        chatflowConfig: {
-          sessionId: sessionId,
-          chatId: sessionId
-        },
-        container: root,            // << ensure the chat renders in this div
-        theme: {                    // optional: guarantees visible window
-          chatWindow: { showTitle: true, title: 'Training Chat' }
-        }
-      });
-      log('Chatbot.init called');
+      // Try the "full" inline mount first (some builds require this)
+      if (typeof Chatbot.initFull === 'function') {
+        log('using initFull');
+        Chatbot.initFull(
+          {
+            chatflowid: flowId,
+            apiHost: 'https://flowise-production-889b.up.railway.app',
+            chatflowConfig: { sessionId, chatId: sessionId },
+            theme: { chatWindow: { showTitle: true, title: 'Training Chat' } }
+          },
+          root // mount into our div
+        );
+      } else {
+        // Fallback to regular init with container
+        log('using init (container)');
+        Chatbot.init({
+          chatflowid: flowId,
+          apiHost: 'https://flowise-production-889b.up.railway.app',
+          chatflowConfig: { sessionId, chatId: sessionId },
+          container: root,
+          theme: { chatWindow: { showTitle: true, title: 'Training Chat' } }
+        });
+      }
+      log('init called');
     } catch (e) {
+      log('init error', e);
       root.innerHTML =
         "<pre style='padding:16px;white-space:pre-wrap;font-family:monospace'>Init error: "
         + (e?.message || e) + "</pre>";
-      console.error(e);
     }
   }
 </script>
