@@ -33,12 +33,13 @@
         apiHost: 'https://flowise-production-889b.up.railway.app',
         chatflowConfig: {
           sessionId: sessionId,
-          chatId: sessionId
+          chatId: sessionId  // some builds look for this name
         }
       });
     } catch (e) {
-      root.innerHTML = "<pre style='padding:16px;white-space:pre-wrap;font-family:monospace'>" +
-        "Init error: " + (e?.message || e) + "</pre>";
+      root.innerHTML =
+        "<pre style='padding:16px;white-space:pre-wrap;font-family:monospace'>Init error: "
+        + (e?.message || e) + "</pre>";
     }
   }
 </script>
