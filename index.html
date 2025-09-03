@@ -1,31 +1,19 @@
 <!doctype html>
 <html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Serapy Chat</title>
-  <style>html,body{height:100%;margin:0}</style>
-</head>
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
 <body>
 <script type="module">
   import Chatbot from 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
 
   const q = new URLSearchParams(location.search);
-  const chatflowid = q.get('flowId');                            // required
+  const chatflowid = q.get('flowId');                         // required
   const apiHost    = q.get('host') || 'https://flowise-production-889b.up.railway.app';
-  const sessionId  = q.get('sessionId');                         // required
-
-  // optional extras from the URL
-  const vars = Object.fromEntries(
-    ['user_name','module_id','module_name','language']
-      .map(k => [k, q.get(k)])
-      .filter(([,v]) => v && v !== 'null')
-  );
+  const sessionId  = q.get('sessionId');                      // required (same one you seeded)
 
   Chatbot.init({
     chatflowid,
     apiHost,
-    chatflowConfig: { sessionId, vars }
+    chatflowConfig: { sessionId } // <-- only this; no vars needed
   });
 </script>
 </body>
