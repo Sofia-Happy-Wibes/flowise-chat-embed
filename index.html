@@ -3,32 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Serapy Chat – Debug</title>
-  <style>body{font-family:system-ui,Arial,sans-serif;margin:24px}</style>
+  <title>Serapy Chat</title>
+  <style>html,body{height:100%;margin:0}</style>
 </head>
 <body>
-  <div id="debug">Loading…</div>
-  <script type="module">
-    import Chatbot from 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
-
-    const q = new URLSearchParams(location.search);
-    const chatflowid = q.get('flowId');
-    const sessionId  = q.get('sessionId');
-    const apiHost    = 'https://flowise-production-889b.up.railway.app'; // your Railway Flowise
-
-    const dbg = document.getElementById('debug');
-    dbg.innerHTML = `
-      <div><b>flowId:</b> ${chatflowid || '(missing)'}</div>
-      <div><b>sessionId:</b> ${sessionId || '(missing)'}</div>
-      <hr/>
-      <div>If both look correct, the chat bubble will appear bottom-right.</div>
-    `;
-
-    if (chatflowid && sessionId) {
-      Chatbot.init({ chatflowid, apiHost, chatflowConfig: { sessionId } });
-    } else {
-      dbg.innerHTML += `<div style="color:#b00">Missing flowId or sessionId in the URL.</div>`;
-    }
-  </script>
+<script type="module">
+  import Chatbot from 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
+  const q = new URLSearchParams(location.search);
+  const chatflowid = q.get('flowId');
+  const sessionId  = q.get('sessionId');
+  const apiHost    = 'https://flowise-production-889b.up.railway.app';
+  Chatbot.init({ chatflowid, apiHost, chatflowConfig: { sessionId } });
+</script>
 </body>
 </html>
