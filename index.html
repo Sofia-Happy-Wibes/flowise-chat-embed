@@ -3,36 +3,27 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Serapy Chat – Debug</title>
-  <style>body{font-family:system-ui,Arial,sans-serif;margin:24px}</style>
+  <title>Serapy Chat</title>
+  <style>html,body{height:100%;margin:0}</style>
 </head>
 <body>
-  <div id="debug"></div>
-  <script type="module">
-    import Chatbot from 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
+<script type="module">
+  import Chatbot from 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
 
-    const q = new URLSearchParams(location.search);
-    const chatflowid = q.get('flowId');
-    const sessionId  = q.get('sessionId');
-    const apiHost    = 'https://flowise-production-889b.up.railway.app'; // hard-coded
+  // Read the two required params from the URL
+  const q = new URLSearchParams(location.search);
+  const chatflowid = q.get('flowId');          // required
+  const sessionId  = q.get('sessionId');       // required
 
-    const dbg = document.getElementById('debug');
-    dbg.innerHTML = `
-      <div><b>flowId:</b> ${chatflowid || '(missing)'}</div>
-      <div><b>sessionId:</b> ${sessionId || '(missing)'}</div>
-      <hr/>
-      <div>If the values above look right, the chat bubble will load in a second…</div>
-    `;
+  // Your Railway Flowise host (hard-coded)
+  const apiHost = 'https://flowise-production-889b.up.railway.app';
 
-    if (!chatflowid || !sessionId) {
-      dbg.innerHTML += `<div style="color:#b00">Missing flowId or sessionId — check the URL query string.</div>`;
-    } else {
-      Chatbot.init({
-        chatflowid,
-        apiHost,
-        chatflowConfig: { sessionId }
-      });
-    }
-  </script>
+  // Initialize the Flowise widget and attach to the exact session
+  Chatbot.init({
+    chatflowid,
+    apiHost,
+    chatflowConfig: { sessionId }
+  });
+</script>
 </body>
 </html>
