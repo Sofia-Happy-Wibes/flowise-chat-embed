@@ -7,13 +7,13 @@
 
   const q = new URLSearchParams(location.search);
   const chatflowid = q.get('flowId');                         // required
-  const apiHost    = q.get('host') || 'https://flowise-production-889b.up.railway.app';
-  const sessionId  = q.get('sessionId');                      // required (same one you seeded)
+  const sessionId  = q.get('sessionId');                      // required
+  const apiHost    = 'https://flowise-production-889b.up.railway.app'; // <— hard-coded
 
   Chatbot.init({
     chatflowid,
     apiHost,
-    chatflowConfig: { sessionId } // <-- only this; no vars needed
+    chatflowConfig: { sessionId }
   });
 </script>
 </body>
