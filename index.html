@@ -1,20 +1,38 @@
 <!doctype html>
 <html>
-<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Serapy Chat – Debug</title>
+  <style>body{font-family:system-ui,Arial,sans-serif;margin:24px}</style>
+</head>
 <body>
-<script type="module">
-  import Chatbot from 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
+  <div id="debug"></div>
+  <script type="module">
+    import Chatbot from 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
 
-  const q = new URLSearchParams(location.search);
-  const chatflowid = q.get('flowId');                         // required
-  const sessionId  = q.get('sessionId');                      // required
-  const apiHost    = 'https://flowise-production-889b.up.railway.app'; // <— hard-coded
+    const q = new URLSearchParams(location.search);
+    const chatflowid = q.get('flowId');
+    const sessionId  = q.get('sessionId');
+    const apiHost    = 'https://flowise-production-889b.up.railway.app'; // hard-coded
 
-  Chatbot.init({
-    chatflowid,
-    apiHost,
-    chatflowConfig: { sessionId }
-  });
-</script>
+    const dbg = document.getElementById('debug');
+    dbg.innerHTML = `
+      <div><b>flowId:</b> ${chatflowid || '(missing)'}</div>
+      <div><b>sessionId:</b> ${sessionId || '(missing)'}</div>
+      <hr/>
+      <div>If the values above look right, the chat bubble will load in a second…</div>
+    `;
+
+    if (!chatflowid || !sessionId) {
+      dbg.innerHTML += `<div style="color:#b00">Missing flowId or sessionId — check the URL query string.</div>`;
+    } else {
+      Chatbot.init({
+        chatflowid,
+        apiHost,
+        chatflowConfig: { sessionId }
+      });
+    }
+  </script>
 </body>
 </html>
