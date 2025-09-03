@@ -10,15 +10,15 @@
 <script type="module">
   import Chatbot from 'https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js';
 
-  // Read the two required params from the URL
+  // Read required params from URL
   const q = new URLSearchParams(location.search);
-  const chatflowid = q.get('flowId');          // required
-  const sessionId  = q.get('sessionId');       // required
+  const chatflowid = q.get('flowId');    // required
+  const sessionId  = q.get('sessionId'); // required
 
-  // Your Railway Flowise host (hard-coded)
+  // Your Flowise host (Railway)
   const apiHost = 'https://flowise-production-889b.up.railway.app';
 
-  // Initialize the Flowise widget and attach to the exact session
+  // Initialize the widget and attach to the exact session
   Chatbot.init({
     chatflowid,
     apiHost,
