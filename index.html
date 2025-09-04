@@ -2,39 +2,59 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Flowise Chat Embed</title>
-  <style>html,body,#app{height:100%;margin:0} #app{display:flex;}</style>
-  <script type="module">
-    // Load Flowise web component
-    import "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
-    window.addEventListener("DOMContentLoaded", () => {
-      const params = new URLSearchParams(location.search);
-      const flowId = params.get("flowId");
-      const sessionId = params.get("sessionId");
-
-      if (!flowId || !sessionId) {
-        document.body.innerHTML = "<p style='padding:16px'>Missing flowId or sessionId.</p>";
-        return;
-      }
-
-      // <<< set your API host here (Railway) >>>
-      const API_HOST = "https://flowise-production-889b.up.railway.app";
-
-      // Create the widget
-      const el = document.createElement("flowise-chatbot");
-      // Equivalent of Chatbot.init({...})
-      el.setAttribute("chatflowid", flowId);
-      el.setAttribute("apihost", API_HOST);
-      el.setAttribute("chatid", sessionId);
-      // optional UX tweaks (leave out if you want absolute minimum):
-      // el.setAttribute("theme","{'button':'#1f2937'}");
-
-      document.getElementById("app").appendChild(el);
-    });
-  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flowise Widget (Debug)</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; padding: 16px; }
+    .debug {
+      background: #fff7cc; border: 1px solid #f0d36a; padding: 12px; border-radius: 8px;
+      margin-bottom: 12px; line-height: 1.4; word-break: break-all;
+    }
+    .ok { color: #0a7f20; font-weight: 600; }
+    .err { color: #b00020; font-weight: 600; }
+  </style>
 </head>
 <body>
-  <div id="app"></div>
+  <div id="debug" class="debug">Loading…</div>
+
+  <script type="module">
+    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
+
+    const qs = new URLSearchParams(location.search);
+    const flowId = qs.get('flowId');
+    const sessionId = qs.get('sessionId');   // must be ?sessionId=... in URL (case-sensitive)
+    // Railway host for your Flowise:
+    const apiHost = 'https://flowise-production-889b.up.railway.app';
+
+    const dbg = document.getElementById('debug');
+
+    function setDebug(html) { dbg.innerHTML = html; }
+
+    // Show what we received from the URL
+    setDebug(
+      `<div><strong>flowId</strong>: ${flowId || '<span class="err">MISSING</span>'}</div>` +
+      `<div><strong>sessionId</strong>: ${sessionId || '<span class="err">MISSING</span>'}</div>` +
+      `<div><strong>apiHost</strong>: ${apiHost}</div>` +
+      `<div style="margin-top:8px">Status: ${
+        (flowId && sessionId) ? '<span class="ok">OK – initializing widget…</span>' : '<span class="err">Cannot start – check URL params</span>'
+      }</div>`
+    );
+
+    console.log('[Flowise Debug] flowId =', flowId);
+    console.log('[Flowise Debug] sessionId =', sessionId);
+
+    // Hard stop if params are missing/misnamed
+    if (!flowId || !sessionId) {
+      console.error('[Flowise Debug] Missing flowId or sessionId query params.');
+    } else {
+      Chatbot.init({
+        chatflowid: flowId,
+        apiHost,
+        // CRITICAL: bind the widget to the exact seeded session
+        chatId: sessionId,
+        // leave the look-and-feel default to avoid surprises
+      });
+    }
+  </script>
 </body>
 </html>
