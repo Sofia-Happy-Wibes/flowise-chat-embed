@@ -2,39 +2,109 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
   <title>Flowise Chat Embed</title>
-  <style>html,body,#app{height:100%;margin:0} #app{display:flex;}</style>
-  <script type="module">
-    // Load Flowise web component
-    import "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
-    window.addEventListener("DOMContentLoaded", () => {
-      const params = new URLSearchParams(location.search);
-      const flowId = params.get("flowId");
-      const sessionId = params.get("sessionId");
-
-      if (!flowId || !sessionId) {
-        document.body.innerHTML = "<p style='padding:16px'>Missing flowId or sessionId.</p>";
-        return;
-      }
-
-      // <<< set your API host here (Railway) >>>
-      const API_HOST = "https://flowise-production-889b.up.railway.app";
-
-      // Create the widget
-      const el = document.createElement("flowise-chatbot");
-      // Equivalent of Chatbot.init({...})
-      el.setAttribute("chatflowid", flowId);
-      el.setAttribute("apihost", API_HOST);
-      el.setAttribute("chatid", sessionId);
-      // optional UX tweaks (leave out if you want absolute minimum):
-      // el.setAttribute("theme","{'button':'#1f2937'}");
-
-      document.getElementById("app").appendChild(el);
-    });
-  </script>
+  <style>
+    :root { --debug-bg:#fff3cd; --debug-border:#ffe69c; --debug-text:#111; }
+    html, body { height: 100%; margin: 0; }
+    /* Tiny debug card at the top-left */
+    #debug {
+      font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      position: fixed; top: 16px; left: 16px; z-index: 2147483646;
+      background: var(--debug-bg); color: var(--debug-text);
+      border: 1px solid var(--debug-border); border-radius: 8px;
+      padding: 10px 12px; box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    }
+    #debug b { font-weight: 700; }
+    #status.ok { color: #0a7c2f; font-weight: 700; }
+    #status.err { color: #b00020; font-weight: 700; }
+    /* Make absolutely sure the widget can sit on top of anything */
+    .flowise-chatbot-bubble, .flowise-chatbot-window { z-index: 2147483647 !important; }
+  </style>
 </head>
 <body>
-  <div id="app"></div>
+  <div id="debug">
+    <div><b>flowId:</b> <span id="dbg-flow"></span></div>
+    <div><b>sessionId:</b> <span id="dbg-session"></span></div>
+    <div><b>apiHost:</b> <span id="dbg-host"></span></div>
+    <div><b>Status:</b> <span id="status">loading…</span></div>
+  </div>
+
+  <!-- Flowise widget loader -->
+  <script type="module">
+    // 1) Read params
+    const qp = new URLSearchParams(location.search);
+    const flowId    = qp.get('flowId')     || qp.get('chatflowid') || '';
+    const sessionId = qp.get('sessionId')  || '';
+    const apiHost   = qp.get('apiHost')    || 'https://flowise-production-889b.up.railway.app';
+    const autoOpen  = qp.get('open') === '1';
+
+    // 2) Put in debug panel
+    const S = (id, v) => document.getElementById(id).textContent = v || '—';
+    S('dbg-flow', flowId);
+    S('dbg-session', sessionId);
+    S('dbg-host', apiHost);
+
+    const setStatus = (text, ok=true) => {
+      const el = document.getElementById('status');
+      el.textContent = text;
+      el.className = ok ? 'ok' : 'err';
+    };
+
+    // 3) Guard rails: require flowId + sessionId
+    if (!flowId || !sessionId) {
+      setStatus('ERROR – missing flowId or sessionId in URL', false);
+      throw new Error('Missing required query params');
+    }
+
+    // 4) Load Flowise embed and init the **floating widget bubble**
+    try {
+      const { default: Chatbot } = await import('https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js');
+
+      // IMPORTANT: pass your own sessionId through chatflowConfig
+      const instance = Chatbot.init({
+        chatflowid: flowId,            // <- exact key expected by Flowise
+        apiHost,                       // your Flowise server
+        chatflowConfig: {
+          sessionId                    // <- force this sessionId
+          // You can add other runtime vars here if your flow expects them
+          // e.g. "sender": "glide-user-123"
+        },
+        theme: {
+          button: {
+            size: 'large',             // 'small' | 'medium' | 'large'
+            backgroundColor: '#3B81F6',
+            iconColor: '#FFFFFF',
+            right: 24,
+            bottom: 24
+          },
+          chatWindow: {
+            title: 'Serapy Assistant',
+            subtitle: '',
+            showTitle: true,
+            showCloseButton: true,
+            width: 420,
+            height: 600,
+            // Make sure the window is on top of everything:
+            zIndex: 2147483647,
+            // If you want it to auto-open, call open() below
+          }
+        }
+      });
+
+      // Optionally auto-open the window (add &open=1 to the URL)
+      if (autoOpen && instance && typeof instance.open === 'function') {
+        instance.open();
+      }
+
+      setStatus('OK – widget initialized…', true);
+    } catch (e) {
+      console.error(e);
+      setStatus('ERROR – failed to load/init widget', false);
+    }
+  </script>
 </body>
 </html>
