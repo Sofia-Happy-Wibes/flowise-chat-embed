@@ -2,33 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Flowise Chat</title>
-  <style>
-    html, body { height: 100%; margin: 0; }
-    #frame { width: 100%; height: 100%; border: 0; }
-  </style>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flowise Chat Embed</title>
+  <style>html,body,#app{height:100%;margin:0} #app{display:flex;}</style>
+  <script type="module">
+    // Load Flowise web component
+    import "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
+    window.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(location.search);
+      const flowId = params.get("flowId");
+      const sessionId = params.get("sessionId");
+
+      if (!flowId || !sessionId) {
+        document.body.innerHTML = "<p style='padding:16px'>Missing flowId or sessionId.</p>";
+        return;
+      }
+
+      // <<< set your API host here (Railway) >>>
+      const API_HOST = "https://flowise-production-889b.up.railway.app";
+
+      // Create the widget
+      const el = document.createElement("flowise-chatbot");
+      // Equivalent of Chatbot.init({...})
+      el.setAttribute("chatflowid", flowId);
+      el.setAttribute("apihost", API_HOST);
+      el.setAttribute("chatid", sessionId);
+      // optional UX tweaks (leave out if you want absolute minimum):
+      // el.setAttribute("theme","{'button':'#1f2937'}");
+
+      document.getElementById("app").appendChild(el);
+    });
+  </script>
 </head>
 <body>
-  <script>
-    const qs = new URLSearchParams(location.search);
-    const flowId = qs.get('flowId');                 // required
-    const sessionId = qs.get('sessionId');           // required
-    // Hardcode your Flowise host to keep the URL clean:
-    const host = 'https://flowise-production-889b.up.railway.app';
-
-    if (!flowId || !sessionId) {
-      document.body.innerHTML = '<p>Missing flowId or sessionId.</p>';
-    } else {
-      const url = host.replace(/\/$/, '') + '/chatbot/' +
-                  encodeURIComponent(flowId) + '?chatId=' +
-                  encodeURIComponent(sessionId);
-
-      const iframe = document.createElement('iframe');
-      iframe.id = 'frame';
-      iframe.src = url;
-      document.body.appendChild(iframe);
-    }
-  </script>
+  <div id="app"></div>
 </body>
 </html>
