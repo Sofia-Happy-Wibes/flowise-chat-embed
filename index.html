@@ -2,45 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Flowise Chat Embed</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flowise Chat</title>
   <style>
-    /* Make the page and container fill the frame */
-    html, body, #app { height: 100%; margin: 0; }
-    #app { display: block; width: 100%; height: 100%; }
+    html, body { height: 100%; margin: 0; }
+    #frame { width: 100%; height: 100%; border: 0; }
   </style>
-
-  <script type="module">
-    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
-
-    window.addEventListener("DOMContentLoaded", () => {
-      const params = new URLSearchParams(location.search);
-      const flowId = params.get("flowId");
-      const sessionId = params.get("sessionId");
-      if (!flowId || !sessionId) {
-        document.body.innerHTML = "<p style='padding:16px'>Missing flowId or sessionId.</p>";
-        return;
-      }
-
-      // Your Flowise API host
-      const API_HOST = "https://flowise-production-889b.up.railway.app";
-
-      // Render the chat INTO the page container (no floating bubble)
-      Chatbot.init({
-        chatflowid: flowId,
-        apiHost: API_HOST,
-        chatId: sessionId,
-        container: document.getElementById("app"),   // <= key line
-        // Optional visual tweaks; safe to omit
-        theme: {
-          chatWindow: { showTitle: true },          // keeps header
-          // button: { display: "none" }            // not needed in container mode
-        }
-      });
-    });
-  </script>
 </head>
 <body>
-  <div id="app"></div>
+  <script>
+    const qs = new URLSearchParams(location.search);
+    const flowId = qs.get('flowId');                 // required
+    const sessionId = qs.get('sessionId');           // required
+    // Hardcode your Flowise host to keep the URL clean:
+    const host = 'https://flowise-production-889b.up.railway.app';
+
+    if (!flowId || !sessionId) {
+      document.body.innerHTML = '<p>Missing flowId or sessionId.</p>';
+    } else {
+      const url = host.replace(/\/$/, '') + '/chatbot/' +
+                  encodeURIComponent(flowId) + '?chatId=' +
+                  encodeURIComponent(sessionId);
+
+      const iframe = document.createElement('iframe');
+      iframe.id = 'frame';
+      iframe.src = url;
+      document.body.appendChild(iframe);
+    }
+  </script>
 </body>
 </html>
