@@ -1,57 +1,35 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Flowise Chat Embed</title>
-  <style>
-    html,body,#app{height:100%;margin:0} 
-    #app{display:flex;}
-  </style>
-  <script type="module">
-    // Import Flowise web component
-    import "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
-    
-    // Clear all localStorage before initializing
-    try {
-      const keys = Object.keys(localStorage);
-      keys.forEach(key => {
-        if (key.includes('flowise') || key.includes('chat')) {
-          localStorage.removeItem(key);
-        }
-      });
-    } catch(e) {
-      console.log("Could not clear storage:", e);
-    }
-    
-    window.addEventListener("DOMContentLoaded", () => {
-      const params = new URLSearchParams(location.search);
-      const flowId = params.get("flowId");
-      const sessionId = params.get("sessionId");
-      
-      if (!flowId || !sessionId) {
-        document.body.innerHTML = "<p style='padding:16px'>Missing flowId or sessionId.</p>";
-        return;
-      }
-      
-      // YOUR API HOST
-      const API_HOST = "https://flowise-production-889b.up.railway.app";
-      
-      // Create the widget
-      const el = document.createElement("flowise-chatbot");
-      
-      // Set attributes EXACTLY as in your working version
-      el.setAttribute("chatflowid", flowId);
-      el.setAttribute("apihost", API_HOST);
-      el.setAttribute("chatid", sessionId);  // This should work!
-      
-      document.getElementById("app").appendChild(el);
-      
-      console.log("Widget initialized with sessionId:", sessionId);
-    });
-  </script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Flowise Chat Embed</title>
+<style>html,body,#app{height:100%;margin:0} #app{display:flex;}</style>
+<script type="module">
+import "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
+
+window.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(location.search);
+  const flowId = params.get("flowId");
+  const sessionId = params.get("sessionId");
+  
+  if (!flowId || !sessionId) {
+    document.body.innerHTML = "<p style='padding:16px'>Missing flowId or sessionId.</p>";
+    return;
+  }
+  
+  const API_HOST = "https://flowise-production-889b.up.railway.app";
+  
+  const el = document.createElement("flowise-chatbot");
+  el.setAttribute("chatflowid", flowId);
+  el.setAttribute("apihost", API_HOST);
+  el.setAttribute("chatid", sessionId);
+  
+  document.getElementById("app").appendChild(el);
+});
+</script>
 </head>
 <body>
-  <div id="app"></div>
+<div id="app"></div>
 </body>
 </html>
