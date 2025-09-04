@@ -3,156 +3,63 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Serapy Learning Platform</title>
+  <title>Flowise Chat – Full Screen</title>
   <style>
-    body {
-      margin: 0;
-      padding: 20px;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    #start-button {
-      padding: 40px 80px;
-      font-size: 24px;
-      font-weight: bold;
-      color: white;
-      background: #4CAF50;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-      transition: all 0.3s;
-    }
-    
-    #start-button:hover {
-      background: #45a049;
-      transform: translateY(-2px);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.3);
-    }
-    
-    .hidden {
-      display: none !important;
-    }
-    
+    html, body { height: 100%; margin: 0; }
     #chat-root {
       position: fixed;
-      top: 10%;
-      left: 10%;
-      width: 80%;
-      height: 80%;
-      z-index: 10000;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      display: none;
-    }
-    
-    #chat-root.open {
-      display: block;
-    }
-    
-    #overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.7);
-      z-index: 9999;
-      display: none;
-    }
-    
-    #overlay.open {
-      display: block;
-    }
-    
-    #close-button {
-      position: fixed;
-      top: calc(10% + 10px);
-      right: calc(10% + 10px);
-      z-index: 10001;
-      background: #f44336;
-      color: white;
-      border: none;
-      border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      font-size: 20px;
-      cursor: pointer;
-      display: none;
-    }
-    
-    #close-button.open {
-      display: block;
+      inset: 0;
     }
   </style>
 </head>
 <body>
-  <button id="start-button">Start Training Session</button>
-  <div id="overlay"></div>
   <div id="chat-root"></div>
-  <button id="close-button">×</button>
-  
+ 
   <script type="module">
     import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
     
+    // Clear any existing Flowise storage before starting
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('flowise') || key.includes('chat'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      sessionStorage.clear();
+    } catch(e) {
+      console.log("Could not clear storage:", e);
+    }
+ 
     const params = new URLSearchParams(location.search);
     const flowId = params.get("flowId");
     const sessionId = params.get("sessionId");
     const apiHost = params.get("apiHost") || "https://flowise-production-889b.up.railway.app";
     
-    let chatInitialized = false;
-    
-    function openChat() {
-      document.getElementById('start-button').classList.add('hidden');
-      document.getElementById('overlay').classList.add('open');
-      document.getElementById('chat-root').classList.add('open');
-      document.getElementById('close-button').classList.add('open');
-      
-      if (!chatInitialized && flowId && sessionId) {
-        // Use the EXACT working configuration from your full-screen version
-        Chatbot.init({
-          chatflowid: flowId,
-          apiHost,
-          chatflowConfig: { 
-            sessionId: sessionId  // THIS preserves your session ID
-          },
-          container: document.getElementById("chat-root"),
-          theme: {
-            chatWindow: {
-              title: "Serapy Training Session",
-              showTitle: true,
-              showCloseButton: false,
-              open: true,
-              clearChatOnReload: true
-            }
+    if (!flowId || !sessionId) {
+      document.body.innerHTML = "<p style='padding:20px'>Missing required parameters</p>";
+    } else {
+      Chatbot.init({
+        chatflowid: flowId,
+        apiHost,
+        chatflowConfig: { 
+          sessionId: sessionId  // This passes your session ID correctly
+        },
+        container: document.getElementById("chat-root"),
+        theme: {
+          chatWindow: {
+            title: "Serapy Training Session",
+            showTitle: true,
+            showCloseButton: false,
+            open: true,
+            clearChatOnReload: true  // Also clear on reload
           }
-        });
-        
-        console.log("Chat initialized with sessionId:", sessionId);
-        chatInitialized = true;
-      }
-    }
-    
-    function closeChat() {
-      document.getElementById('overlay').classList.remove('open');
-      document.getElementById('chat-root').classList.remove('open');
-      document.getElementById('close-button').classList.remove('open');
-      document.getElementById('start-button').classList.remove('hidden');
-    }
-    
-    document.getElementById('start-button').addEventListener('click', openChat);
-    document.getElementById('close-button').addEventListener('click', closeChat);
-    document.getElementById('overlay').addEventListener('click', closeChat);
-    
-    const moduleName = params.get("module");
-    if (moduleName) {
-      document.getElementById('start-button').textContent = `Start ${moduleName} Training`;
+        }
+      });
+      
+      console.log("Initialized with Session ID:", sessionId);
     }
   </script>
 </body>
