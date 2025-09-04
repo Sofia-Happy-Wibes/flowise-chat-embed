@@ -2,71 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Flowise Chat Embed</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flowise Chat – Full Screen</title>
   <style>
-    body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-    .debug { position: fixed; left: 16px; top: 16px; padding: 12px 14px; background:#fff4cc; border:1px solid #eadca6; border-radius:10px; max-width: 800px; font-size: 14px; line-height: 1.25; }
-    .debug b { font-weight: 600; }
-    .ok { color: #0a7a2a; font-weight: 600; }
-    .err { color: #b00020; font-weight: 600; }
+    /* Fill the whole page/iframe */
+    html, body { height: 100%; margin: 0; }
+    #chat-root {
+      position: fixed; /* avoids vh quirks in webviews */
+      inset: 0;        /* top:0; right:0; bottom:0; left:0 */
+    }
   </style>
 </head>
 <body>
-  <div id="debug" class="debug">Loading…</div>
+  <div id="chat-root"></div>
 
   <script type="module">
-    import Chatbot from 'https://cdn.jsdelivr.net/npm/flowise-embed@latest/dist/web.js';
+    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
 
-    // --- Read URL params ------------------------------------------------------
-    const params = new URLSearchParams(location.search);
-    const chatflowid = params.get('flowId') || params.get('chatflowid') || 'REPLACE_WITH_FALLBACK';
-    const sessionId  = params.get('sessionId') || 'demo-session';
-    const apiHost    = params.get('apiHost') || 'https://flowise-production-889b.up.railway.app';
+    // --- read params ---
+    const params    = new URLSearchParams(location.search);
+    const flowId    = params.get("flowId");
+    const sessionId = params.get("sessionId") || crypto.randomUUID();
+    const apiHost   = params.get("apiHost") || "https://flowise-production-889b.up.railway.app";
 
-    // --- Debug banner ---------------------------------------------------------
-    const dbg = document.getElementById('debug');
-    const setDbg = (statusHtml) => {
-      dbg.innerHTML = `
-        <div><b>flowId:</b> ${chatflowid}</div>
-        <div><b>sessionId:</b> ${sessionId}</div>
-        <div><b>apiHost:</b> ${apiHost}</div>
-        <div><b>Status:</b> ${statusHtml}</div>
-      `;
-    };
+    // --- init full-screen embed (no bubble) ---
+    Chatbot.init({
+      chatflowid: flowId,
+      apiHost,
+      // keep your Glide session stable inside Flowise
+      chatflowConfig: { sessionId },
 
-    try {
-      setDbg('<span class="ok">OK – initializing widget…</span>');
+      // render into the full-screen container
+      container: document.getElementById("chat-root"),
 
-      Chatbot.init({
-        chatflowid,
-        apiHost,                              // <- must CORS-allow your GitHub origin
-        chatflowConfig: {
-          // Passed straight through as overrideConfig to Flowise
-          sessionId
-        },
-        theme: {
-          // Keep the standard floating button for now (bubble mode)
-          button: { backgroundColor: '#3B81F6', size: 'large', iconColor: 'white', right: 24, bottom: 24 },
-          chatWindow: {
-            title: 'Serapy Assistant',
-            welcomeMessage: 'Hi there! How can I help?',
-            width: 420,
-            height: 640,
-            fontSize: 16
-          }
+      // tidy window (no close X, auto-open)
+      theme: {
+        chatWindow: {
+          title: "Serapy Assistant",
+          showTitle: true,
+          showCloseButton: false,
+          open: true
         }
-      });
-    } catch (e) {
-      setDbg('<span class="err">Error during init</span>');
-      console.error(e);
-    }
-
-    // Expose a tiny listener to surface fetch failures from the widget (optional).
-    // If you still see "Failed to fetch", it is almost certainly CORS on the Flowise server.
-    window.addEventListener('unhandledrejection', (ev) => {
-      if (String(ev.reason || '').includes('Failed to fetch')) {
-        setDbg('<span class="err">Error – Failed to fetch (likely CORS). Make sure CORS_ORIGINS includes this page’s origin.</span>');
       }
     });
   </script>
