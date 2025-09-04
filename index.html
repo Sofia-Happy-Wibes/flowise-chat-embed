@@ -3,58 +3,87 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Flowise Widget (Debug)</title>
+  <title>Flowise Chat Embed</title>
+
+  <!-- Optional, tiny debug banner styling -->
   <style>
-    body { font-family: system-ui, Arial, sans-serif; padding: 16px; }
+    :root { color-scheme: light dark; }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
     .debug {
-      background: #fff7cc; border: 1px solid #f0d36a; padding: 12px; border-radius: 8px;
-      margin-bottom: 12px; line-height: 1.4; word-break: break-all;
+      position: relative; margin: 16px; padding: 12px 14px;
+      background: #fff3cd; color: #3b3b3b; border: 1px solid #ffe08a; border-radius: 8px;
+      max-width: 960px; font-size: 14px; line-height: 1.45;
     }
-    .ok { color: #0a7f20; font-weight: 600; }
-    .err { color: #b00020; font-weight: 600; }
+    .debug code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .status { color: #137333; font-weight: 600; }
   </style>
 </head>
 <body>
-  <div id="debug" class="debug">Loading…</div>
+  <!-- Debug panel (safe to remove if you don’t want it) -->
+  <div class="debug" id="debug">
+    <div><b>flowId:</b> <code id="dbg-flow"></code></div>
+    <div><b>sessionId:</b> <code id="dbg-session"></code></div>
+    <div><b>apiHost:</b> <code id="dbg-api"></code></div>
+    <div><b>Status:</b> <span class="status" id="dbg-status">OK – initializing widget…</span></div>
+  </div>
 
-  <script type="module">
-    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
+  <!-- Flowise web widget library -->
+  <script src="https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"></script>
 
-    const qs = new URLSearchParams(location.search);
-    const flowId = qs.get('flowId');
-    const sessionId = qs.get('sessionId');   // must be ?sessionId=... in URL (case-sensitive)
-    // Railway host for your Flowise:
-    const apiHost = 'https://flowise-production-889b.up.railway.app';
+  <script>
+    (function () {
+      const qs = new URLSearchParams(window.location.search);
 
-    const dbg = document.getElementById('debug');
+      // --- URL params ---
+      const flowId    = qs.get('flowId') || ''; // REQUIRED
+      const sessionId = qs.get('sessionId') || ''; // REQUIRED (from Glide)
+      // You may pass ?apiHost=... in the URL; otherwise we default to your production host:
+      const apiHost   = qs.get('apiHost') || 'https://flowise-production-889b.up.railway.app';
+      // Optionally allow ?chatId=...; if omitted we force chatId = sessionId (keeps IDs aligned)
+      const chatId    = qs.get('chatId') || sessionId;
 
-    function setDebug(html) { dbg.innerHTML = html; }
+      // --- Debug banner values ---
+      document.getElementById('dbg-flow').textContent    = flowId || '(missing)';
+      document.getElementById('dbg-session').textContent = sessionId || '(missing)';
+      document.getElementById('dbg-api').textContent     = apiHost;
 
-    // Show what we received from the URL
-    setDebug(
-      `<div><strong>flowId</strong>: ${flowId || '<span class="err">MISSING</span>'}</div>` +
-      `<div><strong>sessionId</strong>: ${sessionId || '<span class="err">MISSING</span>'}</div>` +
-      `<div><strong>apiHost</strong>: ${apiHost}</div>` +
-      `<div style="margin-top:8px">Status: ${
-        (flowId && sessionId) ? '<span class="ok">OK – initializing widget…</span>' : '<span class="err">Cannot start – check URL params</span>'
-      }</div>`
-    );
+      // --- Safety: prevent a previously saved random chatId from overriding ours ---
+      try {
+        // Common keys used by the widget across versions; remove if present.
+        ['flowise_chatId', 'chatId', 'FLOWISE_CHAT_ID'].forEach(k => localStorage.removeItem(k));
+      } catch (e) { /* ignore */ }
 
-    console.log('[Flowise Debug] flowId =', flowId);
-    console.log('[Flowise Debug] sessionId =', sessionId);
+      if (!flowId || !sessionId) {
+        document.getElementById('dbg-status').textContent =
+          'ERROR – flowId and sessionId are required in the URL';
+        return;
+      }
 
-    // Hard stop if params are missing/misnamed
-    if (!flowId || !sessionId) {
-      console.error('[Flowise Debug] Missing flowId or sessionId query params.');
-    } else {
-      Chatbot.init({
+      // --- Initialize widget (bubble at bottom-right) ---
+      // This *forces* the conversation id (chatId) to be exactly your sessionId by default.
+      window.flowise = window.flowise || {};
+      window.flowise.chat({
         chatflowid: flowId,
-        apiHost,
-        // CRITICAL: bind the widget to the exact seeded session
-        chatId: sessionId,
-        // leave the look-and-feel default to avoid surprises
+        apiHost: apiHost,
+        chatId: chatId,          // << keep this aligned with sessionId
+        sessionId: sessionId,    // << still pass sessionId for your flow logic
+
+        // You can customize theme/options below if you like.
+        theme: {
+          button: { backgroundColor: '#2F6BFF' },
+          chatWindow: {
+            welcomeMessage: 'Hi there! How can I help?',
+          }
+        }
+        // Other advanced options (if you use them):
+        // containerId: 'chatbot', // only if you embed into a fixed container instead of the floating bubble
+        // voice: { enabled: true },
+        // chatflowConfig: { ... },
       });
-    }
+
+      // If the script loads, assume init succeeded (the widget handles its own errors)
+      document.getElementById('dbg-status').textContent = 'OK – widget initialized';
+    })();
   </script>
 </body>
 </html>
