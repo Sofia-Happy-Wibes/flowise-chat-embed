@@ -2,88 +2,39 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Flowise Chat Embed</title>
-
-  <!-- Optional, tiny debug banner styling -->
-  <style>
-    :root { color-scheme: light dark; }
-    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-    .debug {
-      position: relative; margin: 16px; padding: 12px 14px;
-      background: #fff3cd; color: #3b3b3b; border: 1px solid #ffe08a; border-radius: 8px;
-      max-width: 960px; font-size: 14px; line-height: 1.45;
-    }
-    .debug code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    .status { color: #137333; font-weight: 600; }
-  </style>
-</head>
-<body>
-  <!-- Debug panel (safe to remove if you don’t want it) -->
-  <div class="debug" id="debug">
-    <div><b>flowId:</b> <code id="dbg-flow"></code></div>
-    <div><b>sessionId:</b> <code id="dbg-session"></code></div>
-    <div><b>apiHost:</b> <code id="dbg-api"></code></div>
-    <div><b>Status:</b> <span class="status" id="dbg-status">OK – initializing widget…</span></div>
-  </div>
-
-  <!-- Flowise web widget library -->
-  <script src="https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"></script>
-
-  <script>
-    (function () {
-      const qs = new URLSearchParams(window.location.search);
-
-      // --- URL params ---
-      const flowId    = qs.get('flowId') || ''; // REQUIRED
-      const sessionId = qs.get('sessionId') || ''; // REQUIRED (from Glide)
-      // You may pass ?apiHost=... in the URL; otherwise we default to your production host:
-      const apiHost   = qs.get('apiHost') || 'https://flowise-production-889b.up.railway.app';
-      // Optionally allow ?chatId=...; if omitted we force chatId = sessionId (keeps IDs aligned)
-      const chatId    = qs.get('chatId') || sessionId;
-
-      // --- Debug banner values ---
-      document.getElementById('dbg-flow').textContent    = flowId || '(missing)';
-      document.getElementById('dbg-session').textContent = sessionId || '(missing)';
-      document.getElementById('dbg-api').textContent     = apiHost;
-
-      // --- Safety: prevent a previously saved random chatId from overriding ours ---
-      try {
-        // Common keys used by the widget across versions; remove if present.
-        ['flowise_chatId', 'chatId', 'FLOWISE_CHAT_ID'].forEach(k => localStorage.removeItem(k));
-      } catch (e) { /* ignore */ }
+  <style>html,body,#app{height:100%;margin:0} #app{display:flex;}</style>
+  <script type="module">
+    // Load Flowise web component
+    import "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
+    window.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(location.search);
+      const flowId = params.get("flowId");
+      const sessionId = params.get("sessionId");
 
       if (!flowId || !sessionId) {
-        document.getElementById('dbg-status').textContent =
-          'ERROR – flowId and sessionId are required in the URL';
+        document.body.innerHTML = "<p style='padding:16px'>Missing flowId or sessionId.</p>";
         return;
       }
 
-      // --- Initialize widget (bubble at bottom-right) ---
-      // This *forces* the conversation id (chatId) to be exactly your sessionId by default.
-      window.flowise = window.flowise || {};
-      window.flowise.chat({
-        chatflowid: flowId,
-        apiHost: apiHost,
-        chatId: chatId,          // << keep this aligned with sessionId
-        sessionId: sessionId,    // << still pass sessionId for your flow logic
+      // <<< set your API host here (Railway) >>>
+      const API_HOST = "https://flowise-production-889b.up.railway.app";
 
-        // You can customize theme/options below if you like.
-        theme: {
-          button: { backgroundColor: '#2F6BFF' },
-          chatWindow: {
-            welcomeMessage: 'Hi there! How can I help?',
-          }
-        }
-        // Other advanced options (if you use them):
-        // containerId: 'chatbot', // only if you embed into a fixed container instead of the floating bubble
-        // voice: { enabled: true },
-        // chatflowConfig: { ... },
-      });
+      // Create the widget
+      const el = document.createElement("flowise-chatbot");
+      // Equivalent of Chatbot.init({...})
+      el.setAttribute("chatflowid", flowId);
+      el.setAttribute("apihost", API_HOST);
+      el.setAttribute("chatid", sessionId);
+      // optional UX tweaks (leave out if you want absolute minimum):
+      // el.setAttribute("theme","{'button':'#1f2937'}");
 
-      // If the script loads, assume init succeeded (the widget handles its own errors)
-      document.getElementById('dbg-status').textContent = 'OK – widget initialized';
-    })();
+      document.getElementById("app").appendChild(el);
+    });
   </script>
+</head>
+<body>
+  <div id="app"></div>
 </body>
 </html>
