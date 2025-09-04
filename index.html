@@ -1,46 +1,27 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Flowise Chat Embed</title>
-  <style>
-    /* Make the page and container fill the frame */
-    html, body, #app { height: 100%; margin: 0; }
-    #app { display: block; width: 100%; height: 100%; }
-  </style>
-
-  <script type="module">
-    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
-
-    window.addEventListener("DOMContentLoaded", () => {
-      const params = new URLSearchParams(location.search);
-      const flowId = params.get("flowId");
-      const sessionId = params.get("sessionId");
-      if (!flowId || !sessionId) {
-        document.body.innerHTML = "<p style='padding:16px'>Missing flowId or sessionId.</p>";
-        return;
-      }
-
-      // Your Flowise API host
-      const API_HOST = "https://flowise-production-889b.up.railway.app";
-
-      // Render the chat INTO the page container (no floating bubble)
-      Chatbot.init({
-        chatflowid: flowId,
-        apiHost: API_HOST,
-        chatId: sessionId,
-        container: document.getElementById("app"),   // <= key line
-        // Optional visual tweaks; safe to omit
-        theme: {
-          chatWindow: { showTitle: true },          // keeps header
-          // button: { display: "none" }            // not needed in container mode
-        }
-      });
-    });
-  </script>
+  <style>html,body,#wrap{height:100%;margin:0} #wrap{width:100%}</style>
 </head>
 <body>
-  <div id="app"></div>
+  <div id="wrap"></div>
+  <script>
+    const p = new URLSearchParams(location.search);
+    const flowId = p.get("flowId");
+    const sessionId = p.get("sessionId");
+    const API_HOST = "https://flowise-production-889b.up.railway.app";
+    if (!flowId || !sessionId) {
+      document.body.innerHTML = "<p style='padding:16px'>Missing flowId or sessionId.</p>";
+    } else {
+      const iframe = document.createElement("iframe");
+      iframe.src = `${API_HOST}/chatbot/${flowId}?chatId=${encodeURIComponent(sessionId)}`;
+      iframe.style.border = "0";
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      document.getElementById("wrap").appendChild(iframe);
+    }
+  </script>
 </body>
 </html>
