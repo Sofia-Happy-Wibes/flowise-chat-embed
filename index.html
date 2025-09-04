@@ -86,33 +86,10 @@
       cursor: pointer;
     }
     
-    #chat-container {
+    #chat-iframe {
       width: 100%;
       height: 100%;
-      position: relative;
-    }
-    
-    /* CRITICAL: Force the Flowise chat to fill the container */
-    #chat-container flowise-chatbot {
-      width: 100% !important;
-      height: 100% !important;
-      position: absolute !important;
-      top: 0 !important;
-      left: 0 !important;
-      display: block !important;
-    }
-    
-    /* Hide the bubble button and show full chat */
-    .flowise-chatbot-button {
-      display: none !important;
-    }
-    
-    .flowise-chatbot-container {
-      width: 100% !important;
-      height: 100% !important;
-      position: relative !important;
-      max-width: none !important;
-      max-height: none !important;
+      border: none;
     }
   </style>
 </head>
@@ -123,12 +100,10 @@
   
   <div id="chat-modal">
     <button id="close-chat">×</button>
-    <div id="chat-container"></div>
+    <iframe id="chat-iframe"></iframe>
   </div>
   
-  <script type="module">
-    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
-    
+  <script>
     const params = new URLSearchParams(location.search);
     const flowId = params.get("flowId");
     const sessionId = params.get("sessionId");
@@ -140,36 +115,10 @@
       document.getElementById('modal-overlay').classList.add('open');
       document.getElementById('chat-modal').classList.add('open');
       
-      // Initialize chat only once with FULL DISPLAY
+      // Load the Flowise chat directly in iframe
       if (!chatInitialized && flowId && sessionId) {
-        Chatbot.initFull({  // Use initFull instead of init
-          chatflowid: flowId,
-          apiHost,
-          chatflowConfig: { 
-            sessionId: sessionId
-          },
-          theme: {
-            chatWindow: {
-              title: "Serapy Training Session",
-              showTitle: true,
-              showCloseButton: false,
-              clearChatOnReload: true,
-              defaultOpen: true,
-              fullScreen: false,  // Not full browser screen
-              width: '100%',      // Fill container width
-              height: '100%'      // Fill container height
-            }
-          }
-        });
-        
-        // Move the chat window into our modal container
-        setTimeout(() => {
-          const chatWindow = document.querySelector('.flowise-chatbot-container');
-          if (chatWindow && chatWindow.parentElement !== document.getElementById('chat-container')) {
-            document.getElementById('chat-container').appendChild(chatWindow);
-          }
-        }, 100);
-        
+        const iframe = document.getElementById('chat-iframe');
+        iframe.src = `${apiHost}/chatbot/${flowId}?chatId=${sessionId}`;
         chatInitialized = true;
       }
     }
@@ -183,6 +132,7 @@
     document.getElementById('close-chat').addEventListener('click', closeChat);
     document.getElementById('modal-overlay').addEventListener('click', closeChat);
     
+    // Customize button text
     const moduleName = params.get("module");
     if (moduleName) {
       document.getElementById('start-button').textContent = `Start ${moduleName} Training`;
