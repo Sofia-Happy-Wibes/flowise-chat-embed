@@ -3,48 +3,48 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Flowise Chat – Full Screen</title>
+  <title>Serapy Learning Chat</title>
   <style>
-    /* Fill the whole page/iframe */
-    html, body { height: 100%; margin: 0; }
-    #chat-root {
-      position: fixed; /* avoids vh quirks in webviews */
-      inset: 0;        /* top:0; right:0; bottom:0; left:0 */
+    html, body { 
+      height: 100%; 
+      margin: 0; 
+      padding: 0;
+    }
+    #app { 
+      height: 100%;
+      width: 100%;
+      display: flex;
     }
   </style>
-</head>
-<body>
-  <div id="chat-root"></div>
-
   <script type="module">
-    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
-
-    // --- read params ---
-    const params    = new URLSearchParams(location.search);
-    const flowId    = params.get("flowId");
-    const sessionId = params.get("sessionId") || crypto.randomUUID();
-    const apiHost   = params.get("apiHost") || "https://flowise-production-889b.up.railway.app";
-
-    // --- init full-screen embed (no bubble) ---
-    Chatbot.init({
-      chatflowid: flowId,
-      apiHost,
-      // keep your Glide session stable inside Flowise
-      chatflowConfig: { sessionId },
-
-      // render into the full-screen container
-      container: document.getElementById("chat-root"),
-
-      // tidy window (no close X, auto-open)
-      theme: {
-        chatWindow: {
-          title: "Serapy Assistant",
-          showTitle: true,
-          showCloseButton: false,
-          open: true
-        }
+    import "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
+    
+    window.addEventListener("DOMContentLoaded", () => {
+      const params = new URLSearchParams(location.search);
+      const flowId = params.get("flowId");
+      const sessionId = params.get("sessionId");
+      
+      console.log("Initializing with:", { flowId, sessionId });
+      
+      if (!flowId || !sessionId) {
+        document.getElementById("app").innerHTML = 
+          '<div style="padding:20px">Missing flowId or sessionId parameters</div>';
+        return;
       }
+      
+      const API_HOST = "https://flowise-production-889b.up.railway.app";
+      
+      const chatbot = document.createElement("flowise-chatbot");
+      chatbot.setAttribute("chatflowid", flowId);
+      chatbot.setAttribute("apihost", API_HOST);
+      chatbot.setAttribute("chatid", sessionId);
+      chatbot.setAttribute("fullscreen", "true");  // Ensures full window
+      
+      document.getElementById("app").appendChild(chatbot);
     });
   </script>
+</head>
+<body>
+  <div id="app">Loading chat...</div>
 </body>
 </html>
