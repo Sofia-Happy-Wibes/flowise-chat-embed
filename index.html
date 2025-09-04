@@ -5,46 +5,78 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Serapy Learning Chat</title>
   <style>
-    html, body { 
-      height: 100%; 
-      margin: 0; 
+    body, html {
+      margin: 0;
       padding: 0;
-    }
-    #app { 
-      height: 100%;
       width: 100%;
-      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #chat-container {
+      width: 100%;
+      height: 100%;
     }
   </style>
-  <script type="module">
-    import "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
-    
-    window.addEventListener("DOMContentLoaded", () => {
-      const params = new URLSearchParams(location.search);
-      const flowId = params.get("flowId");
-      const sessionId = params.get("sessionId");
+  <script>
+    // CRITICAL: Clear all Flowise storage before loading
+    function clearFlowiseMemory() {
+      // Clear all possible Flowise storage keys
+      const keysToRemove = [];
       
-      console.log("Initializing with:", { flowId, sessionId });
-      
-      if (!flowId || !sessionId) {
-        document.getElementById("app").innerHTML = 
-          '<div style="padding:20px">Missing flowId or sessionId parameters</div>';
-        return;
+      // Find all localStorage keys that might be Flowise-related
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('flowise') || key.includes('chat') || key.includes('memory'))) {
+          keysToRemove.push(key);
+        }
       }
       
-      const API_HOST = "https://flowise-production-889b.up.railway.app";
+      // Remove them
+      keysToRemove.forEach(key => localStorage.removeItem(key));
       
-      const chatbot = document.createElement("flowise-chatbot");
-      chatbot.setAttribute("chatflowid", flowId);
-      chatbot.setAttribute("apihost", API_HOST);
-      chatbot.setAttribute("chatid", sessionId);
-      chatbot.setAttribute("fullscreen", "true");  // Ensures full window
+      // Also clear sessionStorage
+      sessionStorage.clear();
       
-      document.getElementById("app").appendChild(chatbot);
-    });
+      // Clear cookies for the domain
+      document.cookie.split(";").forEach(function(c) { 
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+      });
+    }
+    
+    // Clear memory on page load
+    clearFlowiseMemory();
   </script>
 </head>
 <body>
-  <div id="app">Loading chat...</div>
+  <div id="chat-container"></div>
+  <script type="module">
+    const params = new URLSearchParams(location.search);
+    const flowId = params.get("flowId");
+    const sessionId = params.get("sessionId");
+    const clearMemory = params.get("clear"); // Add parameter to force clear
+    
+    if (!flowId || !sessionId) {
+      document.getElementById("chat-container").innerHTML = 
+        '<div style="padding:20px;font-family:Arial">Missing flowId or sessionId parameters</div>';
+    } else {
+      // If clear parameter is set, clear storage again
+      if (clearMemory === "true") {
+        clearFlowiseMemory();
+      }
+      
+      // Create iframe with cache-busting
+      const iframe = document.createElement('iframe');
+      const timestamp = new Date().getTime();
+      iframe.src = `https://flowise-production-889b.up.railway.app/chatbot/${flowId}?chatId=${sessionId}&t=${timestamp}`;
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = 'none';
+      iframe.setAttribute('allow', 'clipboard-write');
+      
+      // Clear container and add iframe
+      document.getElementById('chat-container').innerHTML = '';
+      document.getElementById('chat-container').appendChild(iframe);
+    }
+  </script>
 </body>
 </html>
