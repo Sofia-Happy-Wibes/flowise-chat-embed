@@ -1,35 +1,50 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Flowise Chat Embed</title>
-<style>html,body,#app{height:100%;margin:0} #app{display:flex;}</style>
-<script type="module">
-import "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
-
-window.addEventListener("DOMContentLoaded", () => {
-  const params = new URLSearchParams(location.search);
-  const flowId = params.get("flowId");
-  const sessionId = params.get("sessionId");
-  
-  if (!flowId || !sessionId) {
-    document.body.innerHTML = "<p style='padding:16px'>Missing flowId or sessionId.</p>";
-    return;
-  }
-  
-  const API_HOST = "https://flowise-production-889b.up.railway.app";
-  
-  const el = document.createElement("flowise-chatbot");
-  el.setAttribute("chatflowid", flowId);
-  el.setAttribute("apihost", API_HOST);
-  el.setAttribute("chatid", sessionId);
-  
-  document.getElementById("app").appendChild(el);
-});
-</script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Flowise Chat – Full Screen</title>
+  <style>
+    /* Fill the whole page/iframe */
+    html, body { height: 100%; margin: 0; }
+    #chat-root {
+      position: fixed; /* avoids vh quirks in webviews */
+      inset: 0;        /* top:0; right:0; bottom:0; left:0 */
+    }
+  </style>
 </head>
 <body>
-<div id="app"></div>
+  <div id="chat-root"></div>
+
+  <script type="module">
+    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
+
+    // --- read params ---
+    const params    = new URLSearchParams(location.search);
+    const flowId    = params.get("flowId");
+    const sessionId = params.get("sessionId") || crypto.randomUUID();
+    const apiHost   = params.get("apiHost") || "https://flowise-production-889b.up.railway.app";
+
+    // --- init full-screen embed (no bubble) ---
+    Chatbot.init({
+      chatflowid: flowId,
+      apiHost,
+      // keep your Glide session stable inside Flowise
+      chatflowConfig: { sessionId },
+
+      // render into the full-screen container
+      container: document.getElementById("chat-root"),
+
+      // tidy window (no close X, auto-open)
+      theme: {
+        chatWindow: {
+          title: "Serapy Assistant",
+          showTitle: true,
+          showCloseButton: false,
+          open: true
+        }
+      }
+    });
+  </script>
 </body>
 </html>
