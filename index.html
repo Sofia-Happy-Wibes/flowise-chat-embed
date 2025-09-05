@@ -3,48 +3,51 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Flowise Chat – Full Page</title>
+  <title>Serapy Assistant – Full Page</title>
   <style>
     html, body { height: 100%; margin: 0; }
-    #chat-root { height: 100vh; width: 100vw; }
+    /* Fullpage embed MUST have an explicit size */
+    flowise-fullchatbot { display: block; width: 100vw; height: 100vh; }
   </style>
 </head>
 <body>
-  <div id="chat-root"></div>
+  <!-- Fullpage container -->
+  <flowise-fullchatbot id="full"></flowise-fullchatbot>
 
   <script type="module">
     import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
 
-    // (Optional) clear any leftover sessions so each open is clean
+    // (Optional) start each open clean
     try {
-      const toDelete = [];
+      const del = [];
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k && (k.includes('flowise') || k.includes('chat'))) toDelete.push(k);
+        if (k && (k.includes("flowise") || k.includes("chat"))) del.push(k);
       }
-      toDelete.forEach(k => localStorage.removeItem(k));
+      del.forEach(k => localStorage.removeItem(k));
       sessionStorage.clear();
-    } catch (e) {}
+    } catch {}
 
     const qs = new URLSearchParams(location.search);
-    const flowId    = qs.get("flowId");
-    const sessionId = qs.get("sessionId");
-    const apiHost   = qs.get("apiHost") || "https://flowise-production-889b.up.railway.app";
+    const chatflowid = qs.get("flowId");
+    const sessionId  = qs.get("sessionId");
+    const apiHost    = qs.get("apiHost") || "https://flowise-production-889b.up.railway.app";
 
-    if (!flowId || !sessionId) {
-      document.body.innerHTML = "<p style='padding:20px;font-family:sans-serif'>Missing flowId or sessionId.</p>";
+    if (!chatflowid || !sessionId) {
+      document.body.innerHTML = "<p style='padding:20px;font-family:sans-serif'>Missing <code>flowId</code> or <code>sessionId</code> in the URL.</p>";
     } else {
       Chatbot.initFull({
-        chatflowid: flowId,
+        chatflowid,
         apiHost,
-        chatflowConfig: { sessionId },          // <-- your Glide sessionId
-        container: document.getElementById("chat-root"),
+        container: document.getElementById("full"),
+        // CRITICAL: keep Glide's session ID end-to-end
+        chatflowConfig: { sessionId },
         theme: {
           chatWindow: {
             title: "Serapy Assistant",
             showTitle: true,
             showCloseButton: false,
-            // optional: clear on reload to avoid carry-over
+            open: true,
             clearChatOnReload: true
           }
         }
