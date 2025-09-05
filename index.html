@@ -1,56 +1,60 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Flowise Chat – Full Screen</title>
   <style>
     html, body { height: 100%; margin: 0; }
-    #chat-root { position: fixed; inset: 0; } /* full screen container */
+    #chat-root {
+      position: fixed;
+      inset: 0;
+    }
   </style>
 </head>
 <body>
   <div id="chat-root"></div>
-
+ 
   <script type="module">
     import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
-
-    // (Optional but helpful) Clear any leftover browser storage to avoid cross-session bleed
+    
+    // Clear any existing Flowise storage before starting
     try {
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k && (k.includes('flowise') || k.includes('chat'))) keysToRemove.push(k);
+        const key = localStorage.key(i);
+        if (key && (key.includes('flowise') || key.includes('chat'))) {
+          keysToRemove.push(key);
+        }
       }
-      keysToRemove.forEach(k => localStorage.removeItem(k));
+      keysToRemove.forEach(key => localStorage.removeItem(key));
       sessionStorage.clear();
-    } catch (e) {}
-
-    const qp = new URLSearchParams(location.search);
-    const flowId    = qp.get("flowId");
-    const sessionId = qp.get("sessionId");
-    const apiHost   = qp.get("apiHost") || "https://flowise-production-889b.up.railway.app";
-
+    } catch(e) {
+      console.log("Could not clear storage:", e);
+    }
+ 
+    const params = new URLSearchParams(location.search);
+    const flowId = params.get("flowId");
+    const sessionId = params.get("sessionId");
+    const apiHost = params.get("apiHost") || "https://flowise-production-889b.up.railway.app";
+    
     if (!flowId || !sessionId) {
-      document.body.innerHTML = "<p style='padding:20px'>Missing flowId or sessionId.</p>";
+      document.body.innerHTML = "<p style='padding:20px'>Missing required parameters</p>";
     } else {
       Chatbot.init({
         chatflowid: flowId,
         apiHost,
-        chatflowConfig: { sessionId },   // <- CRITICAL: same sessionId as Make/Glide
+        chatflowConfig: { 
+          sessionId: sessionId  // This passes your session ID correctly
+        },
         container: document.getElementById("chat-root"),
         theme: {
           chatWindow: {
             title: "Serapy Training Session",
             showTitle: true,
             showCloseButton: false,
-            open: true,               // open full screen immediately
-            clearChatOnReload: true
+            open: true,
+            clearChatOnReload: true  // Also clear on reload
           }
         }
       });
-      console.log("Initialized with Session ID:", sessionId);
-    }
-  </script>
-</body>
-</html>
