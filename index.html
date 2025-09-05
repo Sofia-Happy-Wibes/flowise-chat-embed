@@ -3,58 +3,53 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Flowise Chat – Full Screen</title>
+  <title>Flowise Chat – Full Page</title>
   <style>
     html, body { height: 100%; margin: 0; }
-    #chat-root {
-      position: fixed;
-      inset: 0;
-    }
+    #chat-root { height: 100vh; width: 100vw; }
   </style>
 </head>
 <body>
   <div id="chat-root"></div>
- 
+
   <script type="module">
     import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
-    
-    // Clear any existing Flowise storage before starting
+
+    // (Optional) clear any leftover sessions so each open is clean
     try {
-      const keysToRemove = [];
+      const toDelete = [];
       for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.includes('flowise') || key.includes('chat'))) {
-          keysToRemove.push(key);
-        }
+        const k = localStorage.key(i);
+        if (k && (k.includes('flowise') || k.includes('chat'))) toDelete.push(k);
       }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
+      toDelete.forEach(k => localStorage.removeItem(k));
       sessionStorage.clear();
-    } catch(e) {
-      console.log("Could not clear storage:", e);
-    }
- 
-    const params = new URLSearchParams(location.search);
-    const flowId = params.get("flowId");
-    const sessionId = params.get("sessionId");
-    const apiHost = params.get("apiHost") || "https://flowise-production-889b.up.railway.app";
-    
+    } catch (e) {}
+
+    const qs = new URLSearchParams(location.search);
+    const flowId    = qs.get("flowId");
+    const sessionId = qs.get("sessionId");
+    const apiHost   = qs.get("apiHost") || "https://flowise-production-889b.up.railway.app";
+
     if (!flowId || !sessionId) {
-      document.body.innerHTML = "<p style='padding:20px'>Missing required parameters</p>";
+      document.body.innerHTML = "<p style='padding:20px;font-family:sans-serif'>Missing flowId or sessionId.</p>";
     } else {
-      Chatbot.init({
+      Chatbot.initFull({
         chatflowid: flowId,
         apiHost,
-        chatflowConfig: { 
-          sessionId: sessionId  // This passes your session ID correctly
-        },
+        chatflowConfig: { sessionId },          // <-- your Glide sessionId
         container: document.getElementById("chat-root"),
         theme: {
           chatWindow: {
-            title: "Serapy Training Session",
+            title: "Serapy Assistant",
             showTitle: true,
             showCloseButton: false,
-            open: true,
-            clearChatOnReload: true  // Also clear on reload
+            // optional: clear on reload to avoid carry-over
+            clearChatOnReload: true
           }
         }
       });
+    }
+  </script>
+</body>
+</html>
