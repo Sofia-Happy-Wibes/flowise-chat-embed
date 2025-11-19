@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Serapy Assistant – Обучение (BG)</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    flowise-fullchatbot { display: block; width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <flowise-fullchatbot id="full"></flowise-fullchatbot>
+
+  <script type="module">
+    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
+
+    try {
+      const del = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.includes("flowise") || k.includes("chat"))) del.push(k);
+      }
+      del.forEach(k => localStorage.removeItem(k));
+      sessionStorage.clear();
+    } catch {}
+
+    const qs = new URLSearchParams(location.search);
+    const chatflowid = qs.get("flowId");
+    const sessionId  = qs.get("sessionId");
+    const apiHost    = qs.get("apiHost") || "https://flowise-production-889b.up.railway.app";
+
+    if (!chatflowid || !sessionId) {
+      document.body.innerHTML = "<p style='padding:20px;font-family:sans-serif'>Липсват параметри <code>flowId</code> или <code>sessionId</code> в URL адреса.</p>";
+    } else {
+      Chatbot.initFull({
+        chatflowid,
+        apiHost,
+        container: document.getElementById("full"),
+        chatflowConfig: { 
+          sessionId 
+          // , language: "bg"
+        },
+        theme: {
+          chatWindow: {
+            title: "Serapy AI Tutor",
+            showTitle: true,
+            showCloseButton: false,
+            poweredByTextColor: "transparent",
+            open: true,
+            clearChatOnReload: true,
+            welcomeMessage: "Добре дошли в обучението.\nГотови ли сте да започнем?"
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
