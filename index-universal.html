@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Serapy Assistant – Universal Wrapper</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    flowise-fullchatbot { display: block; width: 100vw; height: 100vh; }
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  </style>
+</head>
+<body>
+  <flowise-fullchatbot id="full"></flowise-fullchatbot>
+
+  <script type="module">
+    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
+
+    // Optional: start each open clean
+    try {
+      const del = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.includes("flowise") || k.includes("chat"))) del.push(k);
+      }
+      del.forEach(k => localStorage.removeItem(k));
+      sessionStorage.clear();
+    } catch {}
+
+    const qs        = new URLSearchParams(location.search);
+    const chatflowid = qs.get("flowId");
+    const sessionId  = qs.get("sessionId");
+    const apiHost    = qs.get("apiHost") || "https://flowise-production-889b.up.railway.app";
+    const langParam  = (qs.get("lang") || "en").toLowerCase();
+
+    // ---- Language handling: welcome text + direction ----
+    function getWelcomeMessage(lang) {
+      switch (lang) {
+        case "it":
+          return "Benvenuto/a alla tua formazione.\nPronto/a per iniziare?";
+        case "fr":
+          return "Bienvenue dans ta formation.\nPrêt(e) à commencer ?";
+        case "bg":
+          return "Добре дошли в обучението.\nГотови ли сте да започнем?";
+        case "ar":
+          return "مرحبًا بك في التدريب الخاص بك.\nهل أنت مستعد للبدء؟";
+        case "en":
+        default:
+          return "Welcome to your training.\nReady to go?";
+      }
+    }
+
+    // Set text direction for Arabic, LTR for everything else
+    if (langParam === "ar") {
+      document.body.dir = "rtl";
+    } else {
+      document.body.dir = "ltr";
+    }
+
+    if (!chatflowid || !sessionId) {
+      document.body.innerHTML =
+        "<p style='padding:20px;font-family:sans-serif;text-align:" +
+        (langParam === "ar" ? "right" : "left") +
+        "'>" +
+        "Missing <code>flowId</code> or <code>sessionId</code> in the URL." +
+        "</p>";
+    } else {
+      Chatbot.initFull({
+        chatflowid,
+        apiHost,
+        container: document.getElementById("full"),
+        chatflowConfig: {
+          // Keep external session ID end-to-end (Glide / Softr / Airtable)
+          sessionId
+          // NOTE: we do NOT set a language flag here,
+          // so the agent’s own instructions fully control the conversation language.
+        },
+        theme: {
+          chatWindow: {
+            title: "Serapy AI Tutor",
+            showTitle: true,
+            showCloseButton: false,
+            poweredByTextColor: "transparent",
+            open: true,
+            clearChatOnReload: true,
+            welcomeMessage: getWelcomeMessage(langParam)
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
