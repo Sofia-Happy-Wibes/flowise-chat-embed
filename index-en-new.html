@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Serapy Assistant – Training (EN)</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    flowise-fullchatbot { display: block; width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+  <flowise-fullchatbot id="full"></flowise-fullchatbot>
+  <script type="module">
+    import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
+    try {
+      const del = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && (k.includes("flowise") || k.includes("chat"))) del.push(k);
+      }
+      del.forEach(k => localStorage.removeItem(k));
+      sessionStorage.clear();
+    } catch {}
+    const qs = new URLSearchParams(location.search);
+    const chatflowid = qs.get("flowId");
+    const sessionId  = qs.get("sessionId");
+    const apiHost    = qs.get("apiHost") || "https://flowise-production-889b.up.railway.app";
+    if (!chatflowid || !sessionId) {
+      document.body.innerHTML = "<p style='padding:20px;font-family:sans-serif'>Missing <code>flowId</code> or <code>sessionId</code> in the URL.</p>";
+    } else {
+      Chatbot.initFull({
+        chatflowid,
+        apiHost,
+        container: document.getElementById("full"),
+        chatflowConfig: { 
+          sessionId 
+        },
+        theme: {
+          chatWindow: {
+            title: "Serapy AI Tutor",
+            showTitle: true,
+            showCloseButton: false,
+            poweredByTextColor: "transparent",
+            open: true,
+            clearChatOnReload: true,
+            welcomeMessage: "Welcome to your training. Here is the scenario you are entering."
+          }
+        }
+      });
+
+      // Auto-send "start" after widget finishes loading
+      function autoStart() {
+        // Look for the textarea input inside the Flowise shadow DOM
+        const host = document.querySelector("flowise-fullchatbot");
+        if (!host || !host.shadowRoot) {
+          setTimeout(autoStart, 500);
+          return;
+        }
+        const textarea = host.shadowRoot.querySelector("textarea");
+        const sendBtn = host.shadowRoot.querySelector("button[type='submit']") 
+                     || host.shadowRoot.querySelector(".send-button")
+                     || host.shadowRoot.querySelector("button:has(svg)");
+        if (!textarea || !sendBtn) {
+          setTimeout(autoStart, 500);
+          return;
+        }
+        // Set the value and dispatch input event so the widget registers it
+        const nativeSet = Object.getOwnPropertyDescriptor(
+          window.HTMLTextAreaElement.prototype, "value"
+        ).set;
+        nativeSet.call(textarea, "start");
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        // Small delay to let the widget enable the send button
+        setTimeout(() => {
+          sendBtn.click();
+        }, 300);
+      }
+      // Wait 2 seconds for the widget to fully render before attempting
+      setTimeout(autoStart, 2000);
+    }
+  </script>
+</body>
+</html>
