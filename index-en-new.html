@@ -51,32 +51,27 @@
 
       // Auto-send "start" after widget finishes loading
       function autoStart() {
-        // Look for the textarea input inside the Flowise shadow DOM
         const host = document.querySelector("flowise-fullchatbot");
         if (!host || !host.shadowRoot) {
           setTimeout(autoStart, 500);
           return;
         }
-        const textarea = host.shadowRoot.querySelector("textarea");
-        const sendBtn = host.shadowRoot.querySelector("button[type='submit']") 
-                     || host.shadowRoot.querySelector(".send-button")
-                     || host.shadowRoot.querySelector("button:has(svg)");
-        if (!textarea || !sendBtn) {
+        const sr = host.shadowRoot;
+        const textarea = sr.querySelector("textarea");
+        if (!textarea) {
           setTimeout(autoStart, 500);
           return;
         }
-        // Set the value and dispatch input event so the widget registers it
-        const nativeSet = Object.getOwnPropertyDescriptor(
-          window.HTMLTextAreaElement.prototype, "value"
-        ).set;
-        nativeSet.call(textarea, "start");
-        textarea.dispatchEvent(new Event("input", { bubbles: true }));
-        // Small delay to let the widget enable the send button
+        textarea.focus();
+        textarea.value = "";
+        document.execCommand("insertText", false, "start");
         setTimeout(() => {
-          sendBtn.click();
-        }, 300);
+          const btns = sr.querySelectorAll("button");
+          if (btns.length >= 3) {
+            btns[2].click();
+          }
+        }, 500);
       }
-      // Wait 2 seconds for the widget to fully render before attempting
       setTimeout(autoStart, 2000);
     }
   </script>
