@@ -11,10 +11,8 @@
 </head>
 <body>
   <flowise-fullchatbot id="full"></flowise-fullchatbot>
-
   <script type="module">
     import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js";
-
     try {
       const del = [];
       for (let i = 0; i < localStorage.length; i++) {
@@ -24,12 +22,10 @@
       del.forEach(k => localStorage.removeItem(k));
       sessionStorage.clear();
     } catch {}
-
     const qs = new URLSearchParams(location.search);
     const chatflowid = qs.get("flowId");
     const sessionId  = qs.get("sessionId");
     const apiHost    = qs.get("apiHost") || "https://flowise-production-889b.up.railway.app";
-
     if (!chatflowid || !sessionId) {
       document.body.innerHTML = "<p style='padding:20px;font-family:sans-serif'>Missing <code>flowId</code> or <code>sessionId</code> in the URL.</p>";
     } else {
@@ -49,10 +45,34 @@
             poweredByTextColor: "transparent",
             open: true,
             clearChatOnReload: true,
-            welcomeMessage: "Welcome to your training.\nPress any key to start."
+            welcomeMessage: "Welcome to your training. Here is the scenario you are entering."
           }
         }
       });
+      // Auto-send "start" after widget finishes loading
+      function autoStart() {
+        const host = document.querySelector("flowise-fullchatbot");
+        if (!host || !host.shadowRoot) {
+          setTimeout(autoStart, 500);
+          return;
+        }
+        const sr = host.shadowRoot;
+        const textarea = sr.querySelector("textarea");
+        if (!textarea) {
+          setTimeout(autoStart, 500);
+          return;
+        }
+        textarea.focus();
+        textarea.value = "";
+        document.execCommand("insertText", false, "Your scenario is loading below 👇");
+        setTimeout(() => {
+          const btns = sr.querySelectorAll("button");
+          if (btns.length >= 3) {
+            btns[2].click();
+          }
+        }, 500);
+      }
+      setTimeout(autoStart, 2000);
     }
   </script>
 </body>
