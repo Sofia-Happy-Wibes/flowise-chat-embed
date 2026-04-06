@@ -35,7 +35,6 @@
         container: document.getElementById("full"),
         chatflowConfig: { 
           sessionId 
-          // , language: "en"
         },
         theme: {
           chatWindow: {
@@ -49,6 +48,7 @@
           }
         }
       });
+      
       // Auto-send "start" after widget finishes loading
       function autoStart() {
         const host = document.querySelector("flowise-fullchatbot");
