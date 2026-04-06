@@ -53,13 +53,13 @@
       function autoStart() {
         const host = document.querySelector("flowise-fullchatbot");
         if (!host || !host.shadowRoot) {
-          setTimeout(autoStart, 2000);
+          setTimeout(autoStart, 500);
           return;
         }
         const sr = host.shadowRoot;
         const textarea = sr.querySelector("textarea");
         if (!textarea) {
-          setTimeout(autoStart, 2000);
+          setTimeout(autoStart, 500);
           return;
         }
         textarea.focus();
@@ -72,7 +72,7 @@
           }
         }, 500);
       }
-      setTimeout(autoStart, 2000);
+      setTimeout(autoStart, 4000);
     }
   </script>
 </body>
