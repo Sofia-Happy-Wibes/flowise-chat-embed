@@ -66,11 +66,27 @@
         textarea.value = "";
         document.execCommand("insertText", false, "Il tuo scenario è in caricamento 👇");
         setTimeout(() => {
-          const btns = sr.querySelectorAll("button");
-          if (btns.length >= 3) {
-            btns[2].click();
-          }
-        }, 500);
+  const btns = sr.querySelectorAll("button");
+  // Log dans la console pour déboguer si nécessaire
+  console.log("Buttons found:", btns.length, [...btns].map(b => b.getAttribute("aria-label") + "|type:" + b.type + "|class:" + b.className));
+  
+  // Chercher le bouton d'envoi par aria-label d'abord
+  let sendBtn = [...btns].find(b => 
+    b.getAttribute("aria-label")?.toLowerCase().includes("send") ||
+    b.type === "submit"
+  );
+  
+  // Si pas trouvé, prendre le dernier bouton visible (fallback)
+  if (!sendBtn) {
+    sendBtn = [...btns].filter(b => !b.disabled).pop();
+  }
+  
+  if (sendBtn) {
+    sendBtn.click();
+  } else {
+    console.warn("Send button not found. Buttons available:", btns.length);
+  }
+}, 500);
       }
       setTimeout(autoStart, 2000);
     }
