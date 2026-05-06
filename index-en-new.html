@@ -27,7 +27,7 @@
     const sessionId  = qs.get("sessionId");
     const apiHost    = qs.get("apiHost") || "https://flowise-production-889b.up.railway.app";
     if (!chatflowid || !sessionId) {
-      document.body.innerHTML = "<p style='padding:20px;font-family:sans-serif'>Missing <code>flowId</code> or <code>sessionId</code> in the URL.</p>";
+      document.body.innerHTML = "<p style='padding:20px;font-family:sans-serif'>Parameters <code>flowId</code> or <code>sessionId</code> missing in URL.</p>";
     } else {
       Chatbot.initFull({
         chatflowid,
@@ -44,12 +44,12 @@
             poweredByTextColor: "transparent",
             open: true,
             clearChatOnReload: true,
-            welcomeMessage: "Welcome to your training. Here is the scenario you are entering."
+            welcomeMessage: "Welcome to your training. Your scenario is on its way."
           }
         }
       });
-
-      // Auto-send "start" after widget finishes loading
+      
+      // Auto-send after widget finishes loading
       function autoStart() {
         const host = document.querySelector("flowise-fullchatbot");
         if (!host || !host.shadowRoot) {
@@ -67,12 +67,25 @@
         document.execCommand("insertText", false, "Your scenario is loading below 👇");
         setTimeout(() => {
           const btns = sr.querySelectorAll("button");
-          if (btns.length >= 3) {
-            btns[2].click();
+          console.log("Buttons found:", btns.length, [...btns].map(b => b.getAttribute("aria-label") + "|type:" + b.type + "|class:" + b.className));
+          
+          let sendBtn = [...btns].find(b => 
+            b.getAttribute("aria-label")?.toLowerCase().includes("send") ||
+            b.type === "submit"
+          );
+          
+          if (!sendBtn) {
+            sendBtn = [...btns].filter(b => !b.disabled).pop();
+          }
+          
+          if (sendBtn) {
+            sendBtn.click();
+          } else {
+            console.warn("Send button not found. Buttons available:", btns.length);
           }
         }, 500);
       }
-      setTimeout(autoStart, 4000);
+      setTimeout(autoStart, 2000);
     }
   </script>
 </body>
